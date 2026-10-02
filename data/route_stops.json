@@ -1,0 +1,17 @@
+[
+  { "routeId": "route_danfo_isolo_oshodi", "stopId": "stop_isolo_market", "sequence": 1 },
+  { "routeId": "route_danfo_isolo_oshodi", "stopId": "stop_oshodi_terminal", "sequence": 2 },
+
+  { "routeId": "route_brt_oshodi_obalende", "stopId": "stop_oshodi_terminal", "sequence": 1 },
+  { "routeId": "route_brt_oshodi_obalende", "stopId": "stop_obalende", "sequence": 2 },
+
+  { "routeId": "route_brt_oshodi_abule_egba", "stopId": "stop_oshodi_terminal", "sequence": 1 },
+  { "routeId": "route_brt_oshodi_abule_egba", "stopId": "stop_abule_egba", "sequence": 2 },
+
+  { "routeId": "route_brt_oshodi_apapa", "stopId": "stop_oshodi_terminal", "sequence": 1 },
+  { "routeId": "route_brt_oshodi_apapa", "stopId": "stop_apapa", "sequence": 2 },
+
+  { "routeId": "route_danfo_oshodi_ikeja_berger", "stopId": "stop_oshodi_terminal", "sequence": 1 },
+  { "routeId": "route_danfo_oshodi_ikeja_berger", "stopId": "stop_ikeja_along", "sequence": 2 },
+  { "routeId": "route_danfo_oshodi_ikeja_berger", "stopId": "stop_berger", "sequence": 3 }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "route_danfo_isolo_oshodi",
+    "mode": "danfo",
+    "modeTier": "informal",
+    "name": "Isolo — Oshodi"
+  },
+  {
+    "id": "route_brt_oshodi_obalende",
+    "mode": "brt",
+    "modeTier": "formal",
+    "name": "Oshodi — Obalende"
+  },
+  {
+    "id": "route_brt_oshodi_abule_egba",
+    "mode": "brt",
+    "modeTier": "formal",
+    "name": "Oshodi — Abule Egba"
+  },
+  {
+    "id": "route_brt_oshodi_apapa",
+    "mode": "brt",
+    "modeTier": "formal",
+    "name": "Oshodi — Apapa"
+  },
+  {
+    "id": "route_danfo_oshodi_ikeja_berger",
+    "mode": "danfo",
+    "modeTier": "informal",
+    "name": "Oshodi — Ikeja — Berger"
+  }
+]

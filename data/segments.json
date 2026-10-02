@@ -1,0 +1,74 @@
+[
+  {
+    "routeId": "route_danfo_isolo_oshodi",
+    "fromStop": "stop_isolo_market",
+    "toStop": "stop_oshodi_terminal",
+    "avgMinutes": 15,
+    "avgMinutesPeak": 25,
+    "fareMin": 200,
+    "fareMax": 300,
+    "source": "estimate",
+    "confidence": "low",
+    "verifiedAt": null
+  },
+  {
+    "routeId": "route_brt_oshodi_obalende",
+    "fromStop": "stop_oshodi_terminal",
+    "toStop": "stop_obalende",
+    "avgMinutes": 40,
+    "avgMinutesPeak": 55,
+    "fareMin": 630,
+    "fareMax": 630,
+    "source": "official",
+    "confidence": "high",
+    "verifiedAt": "2026-03-02"
+  },
+  {
+    "routeId": "route_brt_oshodi_abule_egba",
+    "fromStop": "stop_oshodi_terminal",
+    "toStop": "stop_abule_egba",
+    "avgMinutes": 30,
+    "avgMinutesPeak": 40,
+    "fareMin": 680,
+    "fareMax": 680,
+    "source": "official",
+    "confidence": "high",
+    "verifiedAt": "2026-03-02"
+  },
+  {
+    "routeId": "route_brt_oshodi_apapa",
+    "fromStop": "stop_oshodi_terminal",
+    "toStop": "stop_apapa",
+    "avgMinutes": 25,
+    "avgMinutesPeak": 35,
+    "fareMin": 690,
+    "fareMax": 690,
+    "source": "official",
+    "confidence": "high",
+    "verifiedAt": "2026-03-02"
+  },
+  {
+    "routeId": "route_danfo_oshodi_ikeja_berger",
+    "fromStop": "stop_oshodi_terminal",
+    "toStop": "stop_ikeja_along",
+    "avgMinutes": 20,
+    "avgMinutesPeak": 30,
+    "fareMin": 150,
+    "fareMax": 250,
+    "source": "estimate",
+    "confidence": "low",
+    "verifiedAt": null
+  },
+  {
+    "routeId": "route_danfo_oshodi_ikeja_berger",
+    "fromStop": "stop_ikeja_along",
+    "toStop": "stop_berger",
+    "avgMinutes": 15,
+    "avgMinutesPeak": 25,
+    "fareMin": 150,
+    "fareMax": 250,
+    "source": "estimate",
+    "confidence": "low",
+    "verifiedAt": null
+  }
+]

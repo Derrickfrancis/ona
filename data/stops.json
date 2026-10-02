@@ -1,0 +1,52 @@
+[
+  {
+    "id": "stop_isolo_market",
+    "name": "Isolo Market",
+    "lat": 6.5310,
+    "lng": 3.3260,
+    "isOfficial": false,
+    "note": "PLACEHOLDER coordinates — confirm on a real ride"
+  },
+  {
+    "id": "stop_oshodi_terminal",
+    "name": "Oshodi Bus Terminal (Terminal 3)",
+    "lat": 6.5550,
+    "lng": 3.3480,
+    "isOfficial": true
+  },
+  {
+    "id": "stop_ikeja_along",
+    "name": "Ikeja Along",
+    "lat": 6.6018,
+    "lng": 3.3515,
+    "isOfficial": true
+  },
+  {
+    "id": "stop_berger",
+    "name": "Berger",
+    "lat": 6.6390,
+    "lng": 3.3600,
+    "isOfficial": true
+  },
+  {
+    "id": "stop_obalende",
+    "name": "Obalende",
+    "lat": 6.4485,
+    "lng": 3.4090,
+    "isOfficial": true
+  },
+  {
+    "id": "stop_abule_egba",
+    "name": "Abule Egba",
+    "lat": 6.6470,
+    "lng": 3.2930,
+    "isOfficial": true
+  },
+  {
+    "id": "stop_apapa",
+    "name": "Apapa",
+    "lat": 6.4490,
+    "lng": 3.3600,
+    "isOfficial": true
+  }
+]
