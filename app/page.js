@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import StopAutoComplete from "./components/StopAutoComplete";
+import CustomRouteBuilder from "./components/CustomRouteBuilder";
 
 const STOPS = [
   { id: "stop_isolo_market", name: "Isolo Market" },
@@ -39,7 +40,7 @@ function ThemeToggle({ theme, onToggle }) {
     <button
       onClick={onToggle}
       aria-label="Toggle dark mode"
-      className="w-9 h-9 flex items-center justify-center rounded-full border flex-shrink-0"
+      className="w-9 h-9 flex items-center justify-center rounded-full border shrink-0"
       style={{ borderColor: "var(--border-strong)", color: "var(--text)" }}
     >
       {theme === "dark" ? (
@@ -63,7 +64,37 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
+function SearchModeToggle({ mode, setMode }) {
+  return (
+    <div className="flex gap-2 mb-5">
+      <button
+        onClick={() => setMode("search")}
+        className="text-sm px-3 py-1.5 rounded-full font-medium"
+        style={{
+          background:
+            mode === "search" ? "var(--accent-fill)" : "var(--surface-1)",
+          color: mode === "search" ? "#FFFFFF" : "var(--text-2)",
+        }}
+      >
+        Search
+      </button>
+      <button
+        onClick={() => setMode("build")}
+        className="text-sm px-3 py-1.5 rounded-full font-medium"
+        style={{
+          background:
+            mode === "build" ? "var(--accent-fill)" : "var(--surface-1)",
+          color: mode === "build" ? "#FFFFFF" : "var(--text-2)",
+        }}
+      >
+        Build your own
+      </button>
+    </div>
+  );
+}
+
 export default function Home() {
+  const [mode, setMode] = useState("search");
   const [theme, setTheme] = useState("light");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
@@ -127,129 +158,140 @@ export default function Home() {
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
 
-        <form onSubmit={handleSearch} className="mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <StopAutoComplete
-              label="From"
-              stops={STOPS}
-              value={origin}
-              onChange={setOrigin}
-              placeholder="Type a stop name"
-            />
-            <StopAutoComplete
-              label="To"
-              stops={STOPS}
-              value={destination}
-              onChange={setDestination}
-              placeholder="Type a stop name"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full sm:w-auto sm:px-10 rounded-lg py-2.5 text-sm sm:text-base font-medium"
-            style={{ background: "var(--accent-fill)", color: "#FFFFFF" }}
-          >
-            Find routes
-          </button>
-        </form>
+        <SearchModeToggle mode={mode} setMode={setMode} />
 
-        {error && (
-          <p
-            className="text-sm rounded-lg px-3 py-2 mb-4 border break-words"
-            style={{
-              color: "var(--danger-text)",
-              background: "var(--danger-bg)",
-              borderColor: "var(--danger-border)",
-            }}
-          >
-            {error}
-          </p>
-        )}
+        {mode === "search" && (
+          <>
+            <form onSubmit={handleSearch} className="mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <StopAutoComplete
+                  label="From"
+                  stops={STOPS}
+                  value={origin}
+                  onChange={setOrigin}
+                  placeholder="Type a stop name"
+                />
+                <StopAutoComplete
+                  label="To"
+                  stops={STOPS}
+                  value={destination}
+                  onChange={setDestination}
+                  placeholder="Type a stop name"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full sm:w-auto sm:px-10 rounded-lg py-2.5 text-sm sm:text-base font-medium"
+                style={{ background: "var(--accent-fill)", color: "#FFFFFF" }}
+              >
+                Find routes
+              </button>
+            </form>
 
-        {loading && (
-          <div className="flex flex-col items-center py-10">
-            <div
-              className="w-8 h-8 rounded-full animate-spin mb-3"
-              style={{
-                border: "3px solid var(--border)",
-                borderTopColor: "var(--accent-fill)",
-              }}
-            />
-            <p className="text-sm" style={{ color: "var(--text-2)" }}>
-              Finding your routes
-            </p>
-          </div>
-        )}
+            {error && (
+              <p
+                className="text-sm rounded-lg px-3 py-2 mb-4 border wrap-break-word"
+                style={{
+                  color: "var(--danger-text)",
+                  background: "var(--danger-bg)",
+                  borderColor: "var(--danger-border)",
+                }}
+              >
+                {error}
+              </p>
+            )}
 
-        {result && result.options && result.options.length === 0 && (
-          <div className="text-center py-10 px-2">
-            <p className="font-medium mb-1" style={{ color: "var(--text)" }}>
-              No routes here yet
-            </p>
-            <p className="text-sm" style={{ color: "var(--text-2)" }}>
-              This trip isn&apos;t covered yet. Try a different stop.
-            </p>
-          </div>
-        )}
-
-        {result && result.options && result.options.length > 0 && (
-          <div>
-            <p
-              className="text-sm sm:text-base mb-3 break-words"
-              style={{ color: "var(--text-2)" }}
-            >
-              {result.bestReason}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {result.options.map((opt, i) => (
+            {loading && (
+              <div className="flex flex-col items-center py-10">
                 <div
-                  key={i}
-                  className="rounded-xl p-3 sm:p-4 min-w-0"
+                  className="w-8 h-8 rounded-full animate-spin mb-3"
                   style={{
-                    border: opt.isBest
-                      ? "2px solid var(--accent-fill)"
-                      : "1px solid var(--border)",
-                    background: "var(--surface)",
+                    border: "3px solid var(--border)",
+                    borderTopColor: "var(--accent-fill)",
                   }}
+                />
+                <p className="text-sm" style={{ color: "var(--text-2)" }}>
+                  Finding your routes
+                </p>
+              </div>
+            )}
+
+            {result && result.options && result.options.length === 0 && (
+              <div className="text-center py-10 px-2">
+                <p
+                  className="font-medium mb-1"
+                  style={{ color: "var(--text)" }}
                 >
-                  <div className="flex justify-between items-center gap-2 mb-2">
-                    {opt.isBest ? (
-                      <span
-                        className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
-                        style={{
-                          background: "var(--accent-bg)",
-                          color: "var(--accent-text)",
-                        }}
-                      >
-                        Best match
-                      </span>
-                    ) : (
-                      <span />
-                    )}
-                    <span
-                      className="font-semibold text-sm sm:text-base whitespace-nowrap"
-                      style={{ color: "var(--text)" }}
+                  No routes here yet
+                </p>
+                <p className="text-sm" style={{ color: "var(--text-2)" }}>
+                  This trip isn&apos;t covered yet. Try a different stop.
+                </p>
+              </div>
+            )}
+
+            {result && result.options && result.options.length > 0 && (
+              <div>
+                <p
+                  className="text-sm sm:text-base mb-3 wrap-break-word"
+                  style={{ color: "var(--text-2)" }}
+                >
+                  {result.bestReason}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {result.options.map((opt, i) => (
+                    <div
+                      key={i}
+                      className="rounded-xl p-3 sm:p-4 min-w-0"
+                      style={{
+                        border: opt.isBest
+                          ? "2px solid var(--accent-fill)"
+                          : "1px solid var(--border)",
+                        background: "var(--surface)",
+                      }}
                     >
-                      ₦{opt.fareMin}-{opt.fareMax}
-                    </span>
-                  </div>
-                  <div className="mb-1 flex flex-wrap">
-                    {opt.legs.map((leg, j) => (
-                      <ModeChip key={j} mode={leg.mode} />
-                    ))}
-                  </div>
-                  <p
-                    className="text-xs sm:text-sm"
-                    style={{ color: "var(--text-2)" }}
-                  >
-                    {opt.totalMinutes} min · {opt.transfers} transfer
-                    {opt.transfers !== 1 ? "s" : ""}
-                  </p>
+                      <div className="flex justify-between items-center gap-2 mb-2">
+                        {opt.isBest ? (
+                          <span
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
+                            style={{
+                              background: "var(--accent-bg)",
+                              color: "var(--accent-text)",
+                            }}
+                          >
+                            Best match
+                          </span>
+                        ) : (
+                          <span />
+                        )}
+                        <span
+                          className="font-semibold text-sm sm:text-base whitespace-nowrap"
+                          style={{ color: "var(--text)" }}
+                        >
+                          ₦{opt.fareMin}-{opt.fareMax}
+                        </span>
+                      </div>
+                      <div className="mb-1 flex flex-wrap">
+                        {opt.legs.map((leg, j) => (
+                          <ModeChip key={j} mode={leg.mode} />
+                        ))}
+                      </div>
+                      <p
+                        className="text-xs sm:text-sm"
+                        style={{ color: "var(--text-2)" }}
+                      >
+                        {opt.totalMinutes} min · {opt.transfers} transfer
+                        {opt.transfers !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
+          </>
         )}
+
+        {mode === "build" && <CustomRouteBuilder stops={STOPS} />}
       </div>
     </main>
   );
