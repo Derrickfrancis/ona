@@ -1,5 +1,5 @@
 import { rankRoutes } from "@/lib/routing";
-import { getStops } from "@/lib/data";
+import { getStops, getRoutes } from "@/lib/data";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -13,8 +13,7 @@ export async function GET(request) {
     );
   }
 
-  // Never trust client input blindly — check it against real stop IDs
-  const validStopIds = new Set(getStops().map((s) => s.id));
+  const validStopIds = new Set(getStops().map((stop) => stop.id));
   if (!validStopIds.has(origin) || !validStopIds.has(destination)) {
     return Response.json({ error: "Unknown stop." }, { status: 400 });
   }
@@ -27,5 +26,29 @@ export async function GET(request) {
   }
 
   const result = rankRoutes(origin, destination);
-  return Response.json(result);
+
+  // Enrich each leg with mode and stop names, so the UI doesn't need to
+  // look anything up itself
+  const routesById = Object.fromEntries(
+    getRoutes().map((route) => [route.id, route]),
+  );
+  const stopsById = Object.fromEntries(
+    getStops().map((stop) => [stop.id, stop]),
+  );
+
+  const enriched = {
+    ...result,
+    options: result.options.map((opt) => ({
+      ...opt,
+      legs: opt.legs.map((leg) => ({
+        ...leg,
+        mode: routesById[leg.routeId]?.mode,
+        modeTier: routesById[leg.routeId]?.modeTier,
+        fromStopName: stopsById[leg.fromStopId]?.name,
+        toStopName: stopsById[leg.toStopId]?.name,
+      })),
+    })),
+  };
+
+  return Response.json(enriched);
 }
