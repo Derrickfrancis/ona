@@ -43,6 +43,10 @@ export async function GET(request) {
     toStopId,
     fromStopName: stopsById[fromStopId]?.name,
     toStopName: stopsById[toStopId]?.name,
+    fromLat: stopsById[fromStopId]?.lat,
+    fromLng: stopsById[fromStopId]?.lng,
+    toLat: stopsById[toStopId]?.lat,
+    toLng: stopsById[toStopId]?.lng,
     ...leg,
   });
 }

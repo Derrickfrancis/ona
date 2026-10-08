@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import StopAutoComplete from "./StopAutoComplete";
+import RouteMap from "./RouteMap";
 
 const MODE_STYLES = {
   danfo: { bg: "var(--orange-bg)", text: "var(--orange-text)" },
@@ -257,6 +258,11 @@ export default function CustomRouteBuilder({ stops }) {
               {totalMinutes} min &middot; &#8358;{totalFareMin}-{totalFareMax}
             </span>
           </div>
+          {legs.length > 0 && (
+            <div className="mb-3">
+              <RouteMap legs={legs} />
+            </div>
+          )}
           <button
             onClick={handleRemoveLastLeg}
             className="text-xs underline mr-4"

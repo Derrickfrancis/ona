@@ -2,6 +2,7 @@
 import { useState } from "react";
 import StopAutoComplete from "./components/StopAutoComplete";
 import CustomRouteBuilder from "./components/CustomRouteBuilder";
+import RouteMap from "./components/RouteMap";
 
 const STOPS = [
   { id: "stop_isolo_market", name: "Isolo Market" },
@@ -165,14 +166,14 @@ export default function Home() {
             <form onSubmit={handleSearch} className="mb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <StopAutoComplete
-                  label="From"
+                  label="Where you dey?"
                   stops={STOPS}
                   value={origin}
                   onChange={setOrigin}
                   placeholder="Type a stop name"
                 />
                 <StopAutoComplete
-                  label="To"
+                  label="Where you dey go?"
                   stops={STOPS}
                   value={destination}
                   onChange={setDestination}
@@ -238,6 +239,13 @@ export default function Home() {
                 >
                   {result.bestReason}
                 </p>
+                {result.options.find((opt) => opt.isBest) && (
+                  <div className="mb-4">
+                    <RouteMap
+                      legs={result.options.find((opt) => opt.isBest).legs}
+                    />
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {result.options.map((opt, i) => (
                     <div

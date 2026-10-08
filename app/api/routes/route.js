@@ -46,6 +46,10 @@ export async function GET(request) {
         modeTier: routesById[leg.routeId]?.modeTier,
         fromStopName: stopsById[leg.fromStopId]?.name,
         toStopName: stopsById[leg.toStopId]?.name,
+        fromLat: stopsById[leg.fromStopId]?.lat,
+        fromLng: stopsById[leg.fromStopId]?.lng,
+        toLat: stopsById[leg.toStopId]?.lat,
+        toLng: stopsById[leg.toStopId]?.lng,
       })),
     })),
   };
