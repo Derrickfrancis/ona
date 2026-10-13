@@ -1,4 +1,4 @@
-import { getLegDetails } from "@/lib/routing";
+import { getLegDetails, getStopIdsBetween } from "@/lib/routing";
 import { getStops, getRoutes } from "@/lib/data";
 
 export async function GET(request) {
@@ -14,13 +14,13 @@ export async function GET(request) {
     );
   }
 
-  const validStopIds = new Set(getStops().map((stop) => stop.id));
-  const validRouteIds = new Set(getRoutes().map((route) => route.id));
-  if (
-    !validStopIds.has(fromStopId) ||
-    !validStopIds.has(toStopId) ||
-    !validRouteIds.has(routeId)
-  ) {
+  const stopsById = Object.fromEntries(
+    getStops().map((stop) => [stop.id, stop]),
+  );
+  const routesById = Object.fromEntries(
+    getRoutes().map((route) => [route.id, route]),
+  );
+  if (!stopsById[fromStopId] || !stopsById[toStopId] || !routesById[routeId]) {
     return Response.json({ error: "Unknown stop or route." }, { status: 400 });
   }
 
@@ -29,12 +29,10 @@ export async function GET(request) {
     return Response.json({ error: "That leg is not valid." }, { status: 400 });
   }
 
-  const routesById = Object.fromEntries(
-    getRoutes().map((route) => [route.id, route]),
-  );
-  const stopsById = Object.fromEntries(
-    getStops().map((stop) => [stop.id, stop]),
-  );
+  function describeStop(stopId) {
+    const stop = stopsById[stopId];
+    return { id: stopId, name: stop?.name, lat: stop?.lat, lng: stop?.lng };
+  }
 
   return Response.json({
     routeId,
@@ -47,6 +45,9 @@ export async function GET(request) {
     fromLng: stopsById[fromStopId]?.lng,
     toLat: stopsById[toStopId]?.lat,
     toLng: stopsById[toStopId]?.lng,
+    stopsAlong: getStopIdsBetween(routeId, fromStopId, toStopId).map(
+      describeStop,
+    ),
     ...leg,
   });
 }

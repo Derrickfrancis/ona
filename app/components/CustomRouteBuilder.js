@@ -14,68 +14,84 @@ function ModeChip({ mode }) {
     bg: "var(--surface-1)",
     text: "var(--text-2)",
   };
-  const label = mode ? mode.toUpperCase() : "UNKNOWN";
   return (
     <span
       className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-md mr-1"
       style={{ background: style.bg, color: style.text }}
     >
-      {label}
+      {mode ? mode.toUpperCase() : "BUS"}
     </span>
   );
+}
+
+function formatNaira(min, max) {
+  return min === max ? `₦${min}` : `₦${min}-${max}`;
+}
+
+function legTimeText(leg) {
+  return leg.minutesKnown === false
+    ? "time not confirmed"
+    : `${leg.minutes} min`;
+}
+
+function legFareText(leg) {
+  if (leg.fareKnown === false) return "fare not confirmed";
+  const text = formatNaira(leg.fareMin, leg.fareMax);
+  return leg.fareEstimated ? `~${text} estimated` : text;
 }
 
 export default function CustomRouteBuilder({ stops }) {
   const [startStopId, setStartStopId] = useState("");
   const [legs, setLegs] = useState([]);
-  const [legOptions, setLegOptions] = useState([]);
+  const [optionsState, setOptionsState] = useState({
+    stopId: "",
+    options: [],
+    failed: false,
+  });
   const [selectedRouteId, setSelectedRouteId] = useState("");
   const [selectedToStopId, setSelectedToStopId] = useState("");
-  const [loadingOptions, setLoadingOptions] = useState(false);
   const [addingLeg, setAddingLeg] = useState(false);
   const [error, setError] = useState("");
 
   const currentStopId =
     legs.length > 0 ? legs[legs.length - 1].toStopId : startStopId;
-  const visibleLegOptions = currentStopId ? legOptions : [];
 
+  // Load the valid next legs whenever the current stop changes
   useEffect(() => {
-    if (!currentStopId) {
-      return;
-    }
+    if (!currentStopId) return;
 
-    let active = true;
-
-    async function loadLegOptions() {
-      setLoadingOptions(true);
-      setError("");
-
-      try {
-        const res = await fetch(`/api/leg-options?fromStopId=${currentStopId}`);
-        const data = await res.json();
-
-        if (!active) return;
-        setLegOptions(data.options || []);
-      } catch {
-        if (!active) return;
-        setError("Couldn't load options. Check your connection.");
-      } finally {
-        if (active) {
-          setLoadingOptions(false);
+    let cancelled = false;
+    fetch(`/api/leg-options?fromStopId=${encodeURIComponent(currentStopId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) {
+          setOptionsState({
+            stopId: currentStopId,
+            options: data.options || [],
+            failed: false,
+          });
         }
-      }
-    }
-
-    loadLegOptions();
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setOptionsState({ stopId: currentStopId, options: [], failed: true });
+        }
+      });
 
     return () => {
-      active = false;
+      cancelled = true;
     };
   }, [currentStopId]);
 
-  const selectedRoute = visibleLegOptions.find(
+  const optionsReady = optionsState.stopId === currentStopId;
+  const loadingOptions = Boolean(currentStopId) && !optionsReady;
+  const legOptions = optionsReady ? optionsState.options : [];
+  const optionsFailed = optionsReady && optionsState.failed;
+
+  const selectedRoute = legOptions.find(
     (opt) => opt.routeId === selectedRouteId,
   );
+  const startStop = stops.find((stop) => stop.id === startStopId);
 
   async function handleAddLeg() {
     if (!selectedRouteId || !selectedToStopId) return;
@@ -83,14 +99,14 @@ export default function CustomRouteBuilder({ stops }) {
     setError("");
     try {
       const res = await fetch(
-        `/api/leg-detail?routeId=${selectedRouteId}&fromStopId=${currentStopId}&toStopId=${selectedToStopId}`,
+        `/api/leg-detail?routeId=${encodeURIComponent(selectedRouteId)}&fromStopId=${encodeURIComponent(currentStopId)}&toStopId=${encodeURIComponent(selectedToStopId)}`,
       );
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Couldn't add that leg.");
         return;
       }
-      setLegs((prev) => [...prev, data]);
+      setLegs((previous) => [...previous, data]);
       setSelectedRouteId("");
       setSelectedToStopId("");
     } catch (err) {
@@ -101,7 +117,7 @@ export default function CustomRouteBuilder({ stops }) {
   }
 
   function handleRemoveLastLeg() {
-    setLegs((prev) => prev.slice(0, -1));
+    setLegs((previous) => previous.slice(0, -1));
     setSelectedRouteId("");
     setSelectedToStopId("");
     setError("");
@@ -118,6 +134,16 @@ export default function CustomRouteBuilder({ stops }) {
   const totalMinutes = legs.reduce((sum, leg) => sum + leg.minutes, 0);
   const totalFareMin = legs.reduce((sum, leg) => sum + leg.fareMin, 0);
   const totalFareMax = legs.reduce((sum, leg) => sum + leg.fareMax, 0);
+  const allTimesKnown = legs.every((leg) => leg.minutesKnown !== false);
+  const allFaresKnown = legs.every((leg) => leg.fareKnown !== false);
+  const anyEstimated = legs.some((leg) => leg.fareEstimated);
+
+  let totalFareText = "fare not confirmed";
+  if (allFaresKnown) {
+    totalFareText = `${anyEstimated ? "~" : ""}${formatNaira(totalFareMin, totalFareMax)}`;
+  } else if (totalFareMax > 0) {
+    totalFareText = `${formatNaira(totalFareMin, totalFareMax)} so far`;
+  }
 
   return (
     <div
@@ -144,25 +170,34 @@ export default function CustomRouteBuilder({ stops }) {
         />
       )}
 
-      {legs.map((leg, i) => (
-        <div key={i} className="flex gap-2 mb-2 items-start">
+      {legs.map((leg, index) => (
+        <div key={index} className="flex gap-2 mb-2 items-start">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium" style={{ color: "var(--text)" }}>
+            <p
+              className="text-xs font-medium wrap-break-word"
+              style={{ color: "var(--text)" }}
+            >
               {leg.fromStopName} &rarr; {leg.toStopName}
             </p>
             <ModeChip mode={leg.mode} />
             <span className="text-xs" style={{ color: "var(--text-2)" }}>
-              {leg.minutes} min &middot; &#8358;{leg.fareMin}-{leg.fareMax}
+              {legTimeText(leg)} &middot; {legFareText(leg)}
             </span>
           </div>
         </div>
       ))}
 
+      {legs.length > 0 && (
+        <div className="mb-3">
+          <RouteMap legs={legs} />
+        </div>
+      )}
+
       {startStopId && (
         <div className="mt-2">
           {legs.length === 0 && (
             <p className="text-xs mb-2" style={{ color: "var(--text-3)" }}>
-              Starting at {stops.find((stop) => stop.id === startStopId)?.name}
+              Starting at {startStop?.name}
             </p>
           )}
 
@@ -172,7 +207,13 @@ export default function CustomRouteBuilder({ stops }) {
             </p>
           )}
 
-          {!loadingOptions && legOptions.length === 0 && (
+          {optionsFailed && (
+            <p className="text-xs mb-2" style={{ color: "var(--danger-text)" }}>
+              Couldn&apos;t load options. Check your connection.
+            </p>
+          )}
+
+          {!loadingOptions && !optionsFailed && legOptions.length === 0 && (
             <p className="text-xs mb-2" style={{ color: "var(--text-3)" }}>
               No further routes found from here.
             </p>
@@ -186,6 +227,7 @@ export default function CustomRouteBuilder({ stops }) {
                   setSelectedRouteId(e.target.value);
                   setSelectedToStopId("");
                 }}
+                aria-label="Choose a route"
                 className="w-full border rounded-lg px-3 py-2 text-sm mb-2"
                 style={{
                   background: "var(--surface)",
@@ -196,7 +238,8 @@ export default function CustomRouteBuilder({ stops }) {
                 <option value="">Choose a route</option>
                 {legOptions.map((opt) => (
                   <option key={opt.routeId} value={opt.routeId}>
-                    {opt.mode?.toUpperCase()} &middot; {opt.routeName}
+                    {opt.callName ? `Enter ${opt.callName}` : opt.routeName}{" "}
+                    &middot; {opt.mode ? opt.mode.toUpperCase() : "BUS"}
                   </option>
                 ))}
               </select>
@@ -205,6 +248,7 @@ export default function CustomRouteBuilder({ stops }) {
                 <select
                   value={selectedToStopId}
                   onChange={(e) => setSelectedToStopId(e.target.value)}
+                  aria-label="Ride to"
                   className="w-full border rounded-lg px-3 py-2 text-sm mb-2"
                   style={{
                     background: "var(--surface)",
@@ -252,17 +296,16 @@ export default function CustomRouteBuilder({ stops }) {
           className="border-t pt-2 mt-2"
           style={{ borderColor: "var(--border)" }}
         >
-          <div className="flex justify-between text-sm mb-2">
+          <div className="flex justify-between gap-2 text-sm mb-2">
             <span style={{ color: "var(--text-2)" }}>Total so far</span>
-            <span className="font-semibold" style={{ color: "var(--text)" }}>
-              {totalMinutes} min &middot; &#8358;{totalFareMin}-{totalFareMax}
+            <span
+              className="font-semibold text-right wrap-break-word"
+              style={{ color: "var(--text)" }}
+            >
+              {allTimesKnown ? `${totalMinutes} min` : "time not confirmed"}{" "}
+              &middot; {totalFareText}
             </span>
           </div>
-          {legs.length > 0 && (
-            <div className="mb-3">
-              <RouteMap legs={legs} />
-            </div>
-          )}
           <button
             onClick={handleRemoveLastLeg}
             className="text-xs underline mr-4"

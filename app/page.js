@@ -1,40 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StopAutoComplete from "./components/StopAutoComplete";
 import CustomRouteBuilder from "./components/CustomRouteBuilder";
 import RouteMap from "./components/RouteMap";
+import PickMap from "./components/PickMap";
+import DirectionsCard from "./components/DirectionsCard";
+import { colorForWay } from "./components/Waycolors";
+import { findNearbyStops, formatDistance } from "@/lib/geo";
 
-const STOPS = [
-  { id: "stop_isolo_market", name: "Isolo Market" },
-  { id: "stop_oshodi_terminal", name: "Oshodi Bus Terminal" },
-  { id: "stop_ikeja_along", name: "Ikeja Along" },
-  { id: "stop_berger", name: "Berger" },
-  { id: "stop_obalende", name: "Obalende" },
-  { id: "stop_abule_egba", name: "Abule Egba" },
-  { id: "stop_apapa", name: "Apapa" },
-];
-
-const MODE_STYLES = {
-  danfo: { bg: "var(--orange-bg)", text: "var(--orange-text)" },
-  brt: { bg: "var(--blue-bg)", text: "var(--blue-text)" },
-  keke: { bg: "var(--pink-bg)", text: "var(--pink-text)" },
-};
-
-function ModeChip({ mode }) {
-  const style = MODE_STYLES[mode] || {
-    bg: "var(--surface-1)",
-    text: "var(--text-2)",
-  };
-  const label = mode ? mode.toUpperCase() : "UNKNOWN";
-  return (
-    <span
-      className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-md mr-1 mb-1"
-      style={{ background: style.bg, color: style.text }}
-    >
-      {label}
-    </span>
-  );
-}
+// Only stops this close (in kilometres) count as "near you"
+const NEARBY_RADIUS_KM = 1;
 
 function ThemeToggle({ theme, onToggle }) {
   return (
@@ -94,36 +69,168 @@ function SearchModeToggle({ mode, setMode }) {
   );
 }
 
+// Which end of the trip a tap on the map will set
+function PickTargetToggle({ target, setTarget }) {
+  const options = [
+    { value: "origin", label: "From" },
+    { value: "destination", label: "To" },
+  ];
+  return (
+    <div className="flex gap-1">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => setTarget(option.value)}
+          className="text-xs px-3 py-1 rounded-full font-medium"
+          style={{
+            background:
+              target === option.value
+                ? "var(--accent-fill)"
+                : "var(--surface-1)",
+            color: target === option.value ? "#FFFFFF" : "var(--text-2)",
+          }}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function Home() {
   const [mode, setMode] = useState("search");
   const [theme, setTheme] = useState("light");
+  const [stops, setStops] = useState([]);
+  const [stopsError, setStopsError] = useState("");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
+  const [pickTarget, setPickTarget] = useState("origin");
+  const [userLocation, setUserLocation] = useState(null);
+  const [nearbyOrigins, setNearbyOrigins] = useState([]);
+  const [locating, setLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
   const [result, setResult] = useState(null);
+  const [activeWay, setActiveWay] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    fetch("/api/stops")
+      .then((res) => res.json())
+      .then((data) => setStops(data.stops || []))
+      .catch(() =>
+        setStopsError("Couldn't load stops. Refresh the page to try again."),
+      );
+  }, []);
+
   function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
+    const root = document.documentElement;
+    const current =
+      root.getAttribute("data-theme") ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light");
+    const next = current === "dark" ? "light" : "dark";
     setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
+    root.setAttribute("data-theme", next);
     localStorage.setItem("ona-theme", next);
+  }
+
+  // Choosing a starting stop by hand drops the GPS-based list of nearby stops
+  function handleOriginChange(stopId) {
+    setOrigin(stopId);
+    if (!nearbyOrigins.some((entry) => entry.stop.id === stopId)) {
+      setNearbyOrigins([]);
+    }
+  }
+
+  // Your position stays in this browser. It is never sent to the server;
+  // only the IDs of the stops near you are.
+  function handleUseMyLocation() {
+    setLocationMessage("");
+
+    if (!navigator.geolocation) {
+      setLocationMessage("This browser can't share your location.");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ lat: latitude, lng: longitude });
+
+        // Landmarks (like a hospital) are places you go to, not places you board
+        const boardableStops = stops.filter((stop) => stop.kind !== "landmark");
+        const nearby = findNearbyStops(
+          latitude,
+          longitude,
+          boardableStops,
+          NEARBY_RADIUS_KM,
+          3,
+        );
+
+        if (nearby.length > 0) {
+          setNearbyOrigins(nearby);
+          setOrigin(nearby[0].stop.id);
+          setPickTarget("destination");
+          const others =
+            nearby.length > 1
+              ? ` I'll also check ${nearby.length - 1} other stop${nearby.length > 2 ? "s" : ""} near you.`
+              : "";
+          setLocationMessage(
+            `Nearest stop: ${nearby[0].stop.name} (${formatDistance(nearby[0].distanceKm)} away).${others} Now say where you're going.`,
+          );
+        } else {
+          setNearbyOrigins([]);
+          setLocationMessage(
+            "No stops within 1 km of you yet. Pick your starting stop instead.",
+          );
+        }
+        setLocating(false);
+      },
+      (geoError) => {
+        setLocationMessage(
+          geoError.code === geoError.PERMISSION_DENIED
+            ? "Location permission was denied. You can still pick your start."
+            : "Couldn't get your location. Try again, or pick your start.",
+        );
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }
+
+  function handlePickOnMap(stopId) {
+    if (pickTarget === "origin") {
+      handleOriginChange(stopId);
+      setPickTarget("destination");
+    } else {
+      setDestination(stopId);
+    }
   }
 
   async function handleSearch(e) {
     e.preventDefault();
     setError("");
     setResult(null);
+    setActiveWay(0);
 
     if (!origin || !destination) {
       setError("Pick both a starting point and a destination.");
       return;
     }
 
+    // With GPS, search from every stop near you, not just the nearest one
+    const originIds = nearbyOrigins.some((entry) => entry.stop.id === origin)
+      ? nearbyOrigins.map((entry) => entry.stop.id)
+      : [origin];
+
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/routes?origin=${origin}&destination=${destination}`,
+        `/api/routes?origins=${originIds.map(encodeURIComponent).join(",")}&destination=${encodeURIComponent(destination)}`,
       );
       const data = await res.json();
       if (!res.ok) {
@@ -135,6 +242,30 @@ export default function Home() {
       setError("Couldn't load routes. Check your connection and try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  // How far you are from each way's first stop (known only when you used GPS)
+  const startDistances = Object.fromEntries(
+    nearbyOrigins.map((entry) => [entry.stop.id, entry.distanceKm]),
+  );
+
+  // "Closest to you" only means something when ways start at different stops.
+  // Every way that starts at the closest stop gets the badge.
+  let closestStartId = null;
+  if (result && result.options) {
+    const distinctStarts = new Set(
+      result.options.map((opt) => opt.startStopId),
+    );
+    if (distinctStarts.size > 1) {
+      let shortest = Infinity;
+      distinctStarts.forEach((startStopId) => {
+        const distance = startDistances[startStopId];
+        if (distance !== undefined && distance < shortest) {
+          shortest = distance;
+          closestStartId = startStopId;
+        }
+      });
     }
   }
 
@@ -163,23 +294,63 @@ export default function Home() {
 
         {mode === "search" && (
           <>
-            <form onSubmit={handleSearch} className="mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                <StopAutoComplete
-                  label="Where you dey?"
-                  stops={STOPS}
-                  value={origin}
-                  onChange={setOrigin}
-                  placeholder="Type a stop name"
-                />
+            <form onSubmit={handleSearch} className="mb-4">
+              <div className="flex items-end gap-2 mb-3">
+                <div className="flex-1 min-w-0">
+                  <StopAutoComplete
+                    label="Where you dey?"
+                    stops={stops}
+                    value={origin}
+                    onChange={handleOriginChange}
+                    placeholder="Type a stop name"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleUseMyLocation}
+                  disabled={locating || stops.length === 0}
+                  aria-label="Use my current location"
+                  className="flex items-center gap-1.5 text-xs px-3 py-2.5 rounded-lg border font-medium shrink-0 disabled:opacity-50"
+                  style={{
+                    borderColor: "var(--border-strong)",
+                    color: "var(--text)",
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+                    <circle cx="12" cy="12" r="8" />
+                  </svg>
+                  {locating ? "Locating..." : "My location"}
+                </button>
+              </div>
+
+              {locationMessage && (
+                <p
+                  className="text-xs mb-3 wrap-break-word"
+                  style={{ color: "var(--text-2)" }}
+                >
+                  {locationMessage}
+                </p>
+              )}
+
+              <div className="mb-4">
                 <StopAutoComplete
                   label="Where you dey go?"
-                  stops={STOPS}
+                  stops={stops}
                   value={destination}
                   onChange={setDestination}
-                  placeholder="Type a stop name"
+                  placeholder="Type a place or stop, e.g. National Orthopaedic Hospital"
                 />
               </div>
+
               <button
                 type="submit"
                 className="w-full sm:w-auto sm:px-10 rounded-lg py-2.5 text-sm sm:text-base font-medium"
@@ -188,6 +359,39 @@ export default function Home() {
                 Find routes
               </button>
             </form>
+
+            <details className="mb-6">
+              <summary
+                className="text-xs cursor-pointer select-none mb-2"
+                style={{ color: "var(--accent-fill)" }}
+              >
+                Pick stops on the map instead
+              </summary>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs" style={{ color: "var(--text-3)" }}>
+                  Tap a stop to set
+                </span>
+                <PickTargetToggle
+                  target={pickTarget}
+                  setTarget={setPickTarget}
+                />
+              </div>
+              <PickMap
+                stops={stops}
+                userLocation={userLocation}
+                originId={origin}
+                destinationId={destination}
+                onPick={handlePickOnMap}
+              />
+              {stopsError && (
+                <p
+                  className="text-xs mt-2"
+                  style={{ color: "var(--danger-text)" }}
+                >
+                  {stopsError}
+                </p>
+              )}
+            </details>
 
             {error && (
               <p
@@ -234,64 +438,44 @@ export default function Home() {
             {result && result.options && result.options.length > 0 && (
               <div>
                 <p
-                  className="text-sm sm:text-base mb-3 wrap-break-word"
+                  className="text-sm sm:text-base mb-1 font-medium"
+                  style={{ color: "var(--text)" }}
+                >
+                  {result.options.length === 1
+                    ? "1 way to go"
+                    : `${result.options.length} ways to go`}
+                </p>
+                <p
+                  className="text-sm mb-3 wrap-break-word"
                   style={{ color: "var(--text-2)" }}
                 >
                   {result.bestReason}
                 </p>
-                {result.options.find((opt) => opt.isBest) && (
-                  <div className="mb-4">
-                    <RouteMap
-                      legs={result.options.find((opt) => opt.isBest).legs}
-                    />
-                  </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {result.options.map((opt, i) => (
-                    <div
-                      key={i}
-                      className="rounded-xl p-3 sm:p-4 min-w-0"
-                      style={{
-                        border: opt.isBest
-                          ? "2px solid var(--accent-fill)"
-                          : "1px solid var(--border)",
-                        background: "var(--surface)",
-                      }}
+
+                <div className="mb-4">
+                  <RouteMap options={result.options} activeIndex={activeWay} />
+                  {result.options.length > 1 && (
+                    <p
+                      className="text-xs mt-2"
+                      style={{ color: "var(--text-3)" }}
                     >
-                      <div className="flex justify-between items-center gap-2 mb-2">
-                        {opt.isBest ? (
-                          <span
-                            className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
-                            style={{
-                              background: "var(--accent-bg)",
-                              color: "var(--accent-text)",
-                            }}
-                          >
-                            Best match
-                          </span>
-                        ) : (
-                          <span />
-                        )}
-                        <span
-                          className="font-semibold text-sm sm:text-base whitespace-nowrap"
-                          style={{ color: "var(--text)" }}
-                        >
-                          ₦{opt.fareMin}-{opt.fareMax}
-                        </span>
-                      </div>
-                      <div className="mb-1 flex flex-wrap">
-                        {opt.legs.map((leg, j) => (
-                          <ModeChip key={j} mode={leg.mode} />
-                        ))}
-                      </div>
-                      <p
-                        className="text-xs sm:text-sm"
-                        style={{ color: "var(--text-2)" }}
-                      >
-                        {opt.totalMinutes} min · {opt.transfers} transfer
-                        {opt.transfers !== 1 ? "s" : ""}
-                      </p>
-                    </div>
+                      Tap a way below to see it highlighted on the map.
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {result.options.map((opt, index) => (
+                    <DirectionsCard
+                      key={index}
+                      option={opt}
+                      index={index}
+                      color={colorForWay(index)}
+                      active={index === activeWay}
+                      onSelect={setActiveWay}
+                      startDistanceKm={startDistances[opt.startStopId]}
+                      isClosest={opt.startStopId === closestStartId}
+                    />
                   ))}
                 </div>
               </div>
@@ -299,7 +483,7 @@ export default function Home() {
           </>
         )}
 
-        {mode === "build" && <CustomRouteBuilder stops={STOPS} />}
+        {mode === "build" && <CustomRouteBuilder stops={stops} />}
       </div>
     </main>
   );

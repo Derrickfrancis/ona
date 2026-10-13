@@ -70,5 +70,54 @@
     "source": "estimate",
     "confidence": "low",
     "verifiedAt": null
+  },
+
+  {
+    "routeId": "route_keke_ishaga_mushin",
+    "fromStop": "stop_ishaga",
+    "toStop": "stop_mushin",
+    "avgMinutes": null,
+    "avgMinutesPeak": null,
+    "fareMin": 300,
+    "fareMax": 500,
+    "source": "owner_example",
+    "confidence": "medium",
+    "verifiedAt": null
+  },
+  {
+    "routeId": "route_bus_mushin_noh",
+    "fromStop": "stop_mushin",
+    "toStop": "stop_national_orthopaedic_hospital",
+    "avgMinutes": null,
+    "avgMinutesPeak": null,
+    "fareMin": 300,
+    "fareMax": 400,
+    "source": "owner_example",
+    "confidence": "medium",
+    "verifiedAt": null
+  },
+  {
+    "routeId": "route_bus_ishaga_oshodi",
+    "fromStop": "stop_ishaga",
+    "toStop": "stop_oshodi_terminal",
+    "avgMinutes": null,
+    "avgMinutesPeak": null,
+    "fareMin": 500,
+    "fareMax": 500,
+    "source": "owner_example",
+    "confidence": "medium",
+    "verifiedAt": null
+  },
+  {
+    "routeId": "route_bus_oshodi_noh",
+    "fromStop": "stop_oshodi_terminal",
+    "toStop": "stop_national_orthopaedic_hospital",
+    "avgMinutes": null,
+    "avgMinutesPeak": null,
+    "fareMin": null,
+    "fareMax": null,
+    "source": "owner_example",
+    "confidence": "low",
+    "verifiedAt": null
   }
 ]

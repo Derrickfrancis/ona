@@ -9,22 +9,22 @@ export async function GET(request) {
     return Response.json({ error: "fromStopId is required." }, { status: 400 });
   }
 
-  const validStopIds = new Set(getStops().map((stop) => stop.id));
-  if (!validStopIds.has(fromStopId)) {
+  const stopsById = Object.fromEntries(
+    getStops().map((stop) => [stop.id, stop]),
+  );
+  if (!stopsById[fromStopId]) {
     return Response.json({ error: "Unknown stop." }, { status: 400 });
   }
 
   const routesById = Object.fromEntries(
     getRoutes().map((route) => [route.id, route]),
   );
-  const stopsById = Object.fromEntries(
-    getStops().map((stop) => [stop.id, stop]),
-  );
 
   const options = getLegOptionsFrom(fromStopId).map((opt) => ({
     routeId: opt.routeId,
     mode: routesById[opt.routeId]?.mode,
     routeName: routesById[opt.routeId]?.name,
+    callName: routesById[opt.routeId]?.callName,
     destinations: opt.destinations.map((stopId) => ({
       id: stopId,
       name: stopsById[stopId]?.name,

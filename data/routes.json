@@ -3,30 +3,65 @@
     "id": "route_danfo_isolo_oshodi",
     "mode": "danfo",
     "modeTier": "informal",
-    "name": "Isolo — Oshodi"
+    "name": "Isolo — Oshodi",
+    "callName": "Oshodi"
   },
   {
     "id": "route_brt_oshodi_obalende",
     "mode": "brt",
     "modeTier": "formal",
-    "name": "Oshodi — Obalende"
+    "name": "Oshodi — Obalende",
+    "callName": "Obalende"
   },
   {
     "id": "route_brt_oshodi_abule_egba",
     "mode": "brt",
     "modeTier": "formal",
-    "name": "Oshodi — Abule Egba"
+    "name": "Oshodi — Abule Egba",
+    "callName": "Abule Egba"
   },
   {
     "id": "route_brt_oshodi_apapa",
     "mode": "brt",
     "modeTier": "formal",
-    "name": "Oshodi — Apapa"
+    "name": "Oshodi — Apapa",
+    "callName": "Apapa"
   },
   {
     "id": "route_danfo_oshodi_ikeja_berger",
     "mode": "danfo",
     "modeTier": "informal",
-    "name": "Oshodi — Ikeja — Berger"
+    "name": "Oshodi — Ikeja — Berger",
+    "callName": "Ikeja or Berger"
+  },
+  {
+    "id": "route_keke_ishaga_mushin",
+    "mode": "keke",
+    "modeTier": "informal",
+    "name": "Ishaga — Mushin",
+    "callName": "Mushin",
+    "vehicleHint": "keke or korope"
+  },
+  {
+    "id": "route_bus_mushin_noh",
+    "mode": "bus",
+    "modeTier": "informal",
+    "name": "Mushin — National Orthopaedic Hospital",
+    "callName": "Onipan"
+  },
+  {
+    "id": "route_bus_ishaga_oshodi",
+    "mode": "bus",
+    "modeTier": "informal",
+    "name": "Ishaga — Oshodi",
+    "callName": "Oshodi"
+  },
+  {
+    "id": "route_bus_oshodi_noh",
+    "mode": "bus",
+    "modeTier": "informal",
+    "name": "Oshodi — National Orthopaedic Hospital",
+    "callName": "Palmgrove or Onipan",
+    "boardingNote": "cross the road"
   }
 ]

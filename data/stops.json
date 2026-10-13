@@ -2,21 +2,25 @@
   {
     "id": "stop_isolo_market",
     "name": "Isolo Market",
-    "lat": 6.5310,
-    "lng": 3.3260,
+    "aliases": ["isolo"],
+    "lat": 6.531,
+    "lng": 3.326,
     "isOfficial": false,
     "note": "PLACEHOLDER coordinates — confirm on a real ride"
   },
   {
     "id": "stop_oshodi_terminal",
     "name": "Oshodi Bus Terminal (Terminal 3)",
-    "lat": 6.5550,
-    "lng": 3.3480,
+    "shortName": "Oshodi",
+    "aliases": ["oshodi", "oshodi terminal"],
+    "lat": 6.555,
+    "lng": 3.348,
     "isOfficial": true
   },
   {
     "id": "stop_ikeja_along",
     "name": "Ikeja Along",
+    "aliases": ["ikeja"],
     "lat": 6.6018,
     "lng": 3.3515,
     "isOfficial": true
@@ -24,29 +28,70 @@
   {
     "id": "stop_berger",
     "name": "Berger",
-    "lat": 6.6390,
-    "lng": 3.3600,
+    "aliases": [],
+    "lat": 6.639,
+    "lng": 3.36,
     "isOfficial": true
   },
   {
     "id": "stop_obalende",
     "name": "Obalende",
+    "aliases": [],
     "lat": 6.4485,
-    "lng": 3.4090,
+    "lng": 3.409,
     "isOfficial": true
   },
   {
     "id": "stop_abule_egba",
     "name": "Abule Egba",
-    "lat": 6.6470,
-    "lng": 3.2930,
+    "aliases": [],
+    "lat": 6.647,
+    "lng": 3.293,
     "isOfficial": true
   },
   {
     "id": "stop_apapa",
     "name": "Apapa",
-    "lat": 6.4490,
-    "lng": 3.3600,
+    "aliases": [],
+    "lat": 6.449,
+    "lng": 3.36,
     "isOfficial": true
+  },
+  {
+    "id": "stop_ishaga",
+    "name": "Ishaga bus stop",
+    "shortName": "Ishaga",
+    "aliases": ["ishaga"],
+    "lat": 6.5215,
+    "lng": 3.3395,
+    "isOfficial": false,
+    "note": "APPROXIMATE coordinates placed from general knowledge — verify on a real map"
+  },
+  {
+    "id": "stop_mushin",
+    "name": "Mushin",
+    "aliases": ["mushin"],
+    "lat": 6.5355,
+    "lng": 3.3553,
+    "isOfficial": false,
+    "note": "APPROXIMATE coordinates placed from general knowledge — verify on a real map"
+  },
+  {
+    "id": "stop_national_orthopaedic_hospital",
+    "name": "National Orthopaedic Hospital",
+    "kind": "landmark",
+    "tellThem": "National Orthopaedic Hospital",
+    "aliases": [
+      "national orthopedic hospital",
+      "orthopedic hospital",
+      "orthopaedic hospital",
+      "orthopedic",
+      "igbobi",
+      "noh"
+    ],
+    "lat": 6.5165,
+    "lng": 3.3745,
+    "isOfficial": true,
+    "note": "APPROXIMATE coordinates placed from general knowledge — verify on a real map"
   }
 ]

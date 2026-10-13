@@ -1,6 +1,11 @@
 "use client";
 import { useState } from "react";
 
+// Lowercase and drop punctuation so "Orthopaedic," and "orthopaedic" match
+function normalize(text) {
+  return (text || "").toLowerCase().replace(/[^a-z0-9 ]/g, "");
+}
+
 export default function StopAutoComplete({
   label,
   stops,
@@ -12,12 +17,17 @@ export default function StopAutoComplete({
   const [open, setOpen] = useState(false);
 
   const selectedStop = stops.find((stop) => stop.id === value);
-  const displayValue =
-    typedQuery !== null ? typedQuery : selectedStop ? selectedStop.name : "";
+  // A chosen stop always shows its own name, even if it was picked on the map
+  const displayValue = selectedStop ? selectedStop.name : (typedQuery ?? "");
 
-  const filtered = (typedQuery ?? "").trim()
-    ? stops.filter((stop) =>
-        stop.name.toLowerCase().includes(typedQuery.toLowerCase()),
+  const query = normalize(typedQuery ?? "");
+  const filtered = query
+    ? stops.filter(
+        (stop) =>
+          normalize(stop.name).includes(query) ||
+          (stop.aliases || []).some((alias) =>
+            normalize(alias).includes(query),
+          ),
       )
     : stops;
 
@@ -45,6 +55,7 @@ export default function StopAutoComplete({
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder={placeholder}
+        autoComplete="off"
         className="w-full border rounded-lg px-3 py-2 text-sm sm:text-base"
         style={{
           background: "var(--surface)",
@@ -61,10 +72,21 @@ export default function StopAutoComplete({
             <li
               key={stop.id}
               onMouseDown={() => handlePick(stop)}
-              className="px-3 py-2 text-sm cursor-pointer"
+              className="px-3 py-2 text-sm cursor-pointer flex items-center justify-between gap-2"
               style={{ color: "var(--text)" }}
             >
-              {stop.name}
+              <span className="min-w-0 wrap-break-word">{stop.name}</span>
+              {stop.kind === "landmark" && (
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
+                  style={{
+                    background: "var(--surface-1)",
+                    color: "var(--text-2)",
+                  }}
+                >
+                  place
+                </span>
+              )}
             </li>
           ))}
         </ul>
