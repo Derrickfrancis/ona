@@ -60,6 +60,17 @@
   },
 
   {
+    "routeId": "route_keke_isolo_mushin",
+    "stopId": "stop_isolo_market",
+    "sequence": 1
+  },
+  {
+    "routeId": "route_keke_isolo_mushin",
+    "stopId": "stop_mushin",
+    "sequence": 2
+  },
+
+  {
     "routeId": "route_keke_ishaga_mushin",
     "stopId": "stop_ishaga",
     "sequence": 1

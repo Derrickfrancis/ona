@@ -44,7 +44,7 @@ function totalFareText(option) {
       : formatNaira(option.fareMin, option.fareMax);
   }
   if (option.fareMax > 0) {
-    return `${formatNaira(option.fareMin, option.fareMax)} so far, plus fares not confirmed yet`;
+    return `${option.fareEstimated ? "~" : ""}${formatNaira(option.fareMin, option.fareMax)} so far, plus fares not confirmed yet`;
   }
   return "Fares not confirmed yet";
 }

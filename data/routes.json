@@ -34,6 +34,16 @@
     "name": "Oshodi — Ikeja — Berger",
     "callName": "Ikeja or Berger"
   },
+
+  {
+    "id": "route_keke_isolo_mushin",
+    "mode": "keke",
+    "modeTier": "informal",
+    "name": "Isolo Market — Mushin",
+    "callName": "Mushin",
+    "vehicleHint": "keke or korope"
+  },
+
   {
     "id": "route_keke_ishaga_mushin",
     "mode": "keke",
